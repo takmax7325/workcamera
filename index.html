@@ -51,6 +51,15 @@ input,textarea{font:inherit;color:inherit}
 .row b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row small{display:block;color:var(--ink2);font-size:13px}
 .row .chev{color:var(--ink2)}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.pcard{text-align:left;background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);width:100%}
+.pcard .ph{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:var(--fill)}
+.pcard .ph.none{display:grid;place-items:center;color:var(--ink2);font-size:13px}
+.pcard .tx{padding:8px 12px 10px}
+.pcard b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcard small{display:block;color:var(--ink2);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcard{position:relative;cursor:pointer}
+.pcard .del{position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;display:grid;place-items:center;font-size:15px}
 .empty{text-align:center;color:var(--ink2);padding:60px 20px}
 .empty b{display:block;color:var(--ink);font-size:18px;margin-bottom:6px}
 .fab{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 22px);transform:translateX(-50%);background:var(--accent);color:#fff;font-weight:700;font-size:17px;padding:14px 34px;border-radius:999px;box-shadow:0 10px 26px rgba(10,100,214,.4);display:flex;align-items:center;gap:8px}
@@ -250,12 +259,14 @@ let currentProject=null;
 async function renderProjects(){const q=$('#q').value.trim();let ps=await DB.all('projects');ps.sort((a,b)=>b.createdAt-a.createdAt);if(q)ps=ps.filter(p=>(p.name+p.site+p.memo).includes(q));
  const photos=await DB.all('photos');const box=$('#projects');box.innerHTML='';
  if(!ps.length){box.innerHTML='<div class="empty"><b>案件がありません</b>右上の「＋ 案件」から現場を作成して撮影を始めましょう。</div>';return}
- const list=document.createElement('div');list.className='list';
- ps.forEach(p=>{const mine=photos.filter(x=>x.projectId===p.id).sort((a,b)=>b.createdAt-a.createdAt);const b=document.createElement('button');b.className='row';
-  const th=mine[0]?`<img class="th" src="${thumbURL(mine[0].ann)}" alt="">`:'<span class="th"></span>';
-  b.innerHTML=`${th}<span class="tx"><b></b><small class="site"></small><small>${fmtD(p.createdAt)}・${mine.length}枚</small></span><span class="chev">›</span>`;
+ const list=document.createElement('div');list.className='pgrid';
+ ps.forEach(p=>{const mine=photos.filter(x=>x.projectId===p.id).sort((a,b)=>b.createdAt-a.createdAt);const b=document.createElement('div');b.className='pcard';b.setAttribute('role','button');
+  const th=mine[0]?`<img class="ph" src="${thumbURL(mine[0].ann)}" alt="">`:'<div class="ph none">写真なし</div>';
+  b.innerHTML=`${th}<div class="tx"><b></b><small class="site"></small><small>${fmtD(p.createdAt)}・${mine.length}枚</small></div><button class="del" aria-label="この案件を削除">✕</button>`;
   b.querySelector('b').textContent=p.name;b.querySelector('.site').textContent=p.site||'';
-  b.onclick=()=>openProject(p.id);list.appendChild(b)});
+  b.onclick=()=>openProject(p.id);
+  b.querySelector('.del').onclick=async e=>{e.stopPropagation();if(!await confirmBox(`「${p.name}」と写真${mine.length}枚を削除しますか？`))return;for(const ph of mine)await DB.del('photos',ph.id);await DB.del('projects',p.id);renderProjects()};
+  list.appendChild(b)});
  box.appendChild(list)}
 $('#q').addEventListener('input',renderProjects);
 $('#addProject').onclick=()=>projectForm(null);
@@ -282,8 +293,8 @@ $('#backList').onclick=()=>{show('s-list');renderProjects()};
 $('#editProject').onclick=()=>projectForm(currentProject);
 $('#shoot').onclick=()=>{$('#camInput').value='';$('#camInput').click()};
 $('#shoot').addEventListener('contextmenu',e=>{e.preventDefault();$('#libInput').value='';$('#libInput').click()});
-$('#camInput').onchange=e=>{const f=e.target.files[0];if(f)startEdit(f,null)};
-$('#libInput').onchange=e=>{const f=e.target.files[0];if(f)startEdit(f,null)};
+$('#camInput').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)startEdit(f,null)};
+$('#libInput').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)startEdit(f,null)};
 
 /* ---------- 書き込み ---------- */
 const ED={img:null,W:0,H:0,shapes:[],strokes:[],tool:'pen',color:COLORS[0],size:1,penKind:'pen',penW:1,finger:false,sel:null,draft:null,cur:null,photo:null,origBlob:null,fit:null};

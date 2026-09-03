@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<link rel="manifest" href="data:application/manifest+json,{%22name%22: %22仕事用カメラ%22, %22short_name%22: %22仕事用カメラ%22, %22start_url%22: %22./index.html%22, %22scope%22: %22./%22, %22display%22: %22standalone%22, %22background_color%22: %22%23F2F2F7%22, %22theme_color%22: %22%23F2F2F7%22}">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAEuUlEQVR4nO3dPXLbVhiG0c+ZVPYO0qfIpEmTnXgJ9qq8hewkjZvYhfvsILVTZDiWFVHCP7774pxOMyJ5B3h4dQmA0KvX7z59LQjxw9kDgC0JmiiCJoqgiSJoogiaKIImiqCJImiiCJoogiaKoIkiaKIImiiCJoqgiSJoogiaKIImiqCJImiiCJoogiaKoIkiaKIImiiCJoqgiSJoogiaKIImiqCJImiiCJoogiaKoIkiaKIImiiCJoqgiSJoogiaKIImiqCJ8uPZA+jsnw+/nD2EJ715//nsIbRlhr6ja8xV/42t8/jOJOgnjBLLKOM8kqAfGS2S0ca7N0ETRdBEETRRBE0UQRNF0EQRNFEETRRBE0XQRHn1+t2nr2cPYgqneM83wlV+rYMWcV9d42675BBzb133T7sZuuuG4r5Os3WrGVrMY+q031oFDWu1CbrTu5z5uuy/FkF32Ris02E/tggatiJoopwedIc/U2zn7P15etCwJUETRdBEcW+7HUw9FXz2ejORoDey5HqGh48R9zYEvdJWF+bcnkfY6wh6ob2uMBP2Oj4ULnDE5ZKdLskciaBnOjI0Uc8n6BnOCEzU8wh6ojPDEvV0gp6gQ1AdxjACRzlesCake0cqlj7nm/efHf14gaCfsSS8KcE9/J25ryHq51lybGhJaOLclqDvmDNzrv03a3Mfbz19n6BX2nKGNVuvJ+gnjDADjjDGMwh6hT1mVLP0OoJeaM/wRL2coIki6EdGWpuONNajCHqBI5YElh3LCJoogiaKoIkiaKIIml18+fj2lNcVNJu7xXxG1IJewLe+7/v791+/+/noqAX9yEjHf7uN9XHMN0dGLWg2cS/mmy8f3x4StqAX2nNJMNpy46WYH9o7akGvsEd4yTHf7Bm1oJ/QbW36lA5jXBJzVdXPv/2x8Ui+EfRKW86oI83OHWOuEvRdc7+0uibGuY8/e3buGnOVoDe19qbnI+gcc1XVq9fvPn095JXuOHu2eUmnOyc995xH6B5zlaAn6TKLivlllhwTdHjTiXkaQU90ZlBink7QM5wRlpjnEfRMRwY2Ysw//fnXxiOZR9ALpH/re9SYq9wferFbcFsfATn7A+jIMVcJerWtwj475KrxY64S9GaW3JW/Q8Q3CTFXCXoXnUKdIiXmKh8KWahjzFWCvrwls3PXmKsEfWlpMVcJ+rISY64S9CWlxlzVIOgul2Zexd4xn70/Tw+a4yTPzDeCvoilx5pH0yLos/9MpTvqxEmH/dgi6KoeGyPRlWKuahQ027tazFXNgu60YUZ3xZirmgVdtf6mLVw35qqGQd903FgjuHLMVQ3uyzHVaJdknmHvmLtG/NAwQfO8pbeoPfMb2ntou+RgOjF/I+jBifl7gh6YmP9P0IMS89MEPSAx3yfowYj5eYIeiJhfJuiBLAnzSjFXCXo4cwK9WsxVzhQO7bklyBVjrjJDD+1etFeNuUrQw3sc75VjrhJ0hFvEV4+5yhqaMGZoogiaKIImiqCJImiiCJoogiaKoIkiaKIImiiCJoqgiSJoogiaKIImiqCJImiiCJoogiaKoIkiaKIImiiCJoqgiSJoogiaKIImiqCJImiiCJoogibKvz0bep17eJuqAAAAAElFTkSuQmCC">
+<meta name="theme-color" content="#F2F2F7">
+<title>仕事用カメラ</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="仕事用カメラ">
+<meta name="mobile-web-app-capable" content="yes">
+</head>
+<body>
+<style>
+:root{
+  --bg:#F2F2F7; --card:#FFFFFF; --ink:#111318; --ink2:#6E7480; --sep:#E3E4E8; --fill:#E9EAEE;
+  --accent:#0A64D6; --danger:#D93025; --bar:rgba(249,249,251,.92); --stage:#E5E7EB;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#000; --card:#1C1C1E; --ink:#F2F2F7; --ink2:#9A9FA8; --sep:#2C2C2E; --fill:#2C2C2E; --accent:#5AA0FF; --bar:rgba(28,28,30,.92); --stage:#111;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000; --card:#1C1C1E; --ink:#F2F2F7; --ink2:#9A9FA8; --sep:#2C2C2E; --fill:#2C2C2E; --accent:#5AA0FF; --bar:rgba(28,28,30,.92); --stage:#111;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;font-size:16px;line-height:1.5;overscroll-behavior:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input,textarea{font:inherit;color:inherit}
+[hidden]{display:none!important}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg)}
+.nav{display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top) + 8px) 16px 8px;background:var(--bar);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--sep);min-height:52px}
+.nav .t{font-weight:700;font-size:17px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.nav .b{color:var(--accent);font-size:16px;padding:6px 4px;white-space:nowrap;min-width:60px}
+.nav .b.r{text-align:right}
+.nav .ic{width:36px;height:36px;border-radius:50%;background:var(--fill);display:grid;place-items:center;min-width:0}
+.body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 16px calc(env(safe-area-inset-bottom) + 100px)}
+.big{font-size:30px;font-weight:800;margin:6px 0 10px;letter-spacing:-.01em}
+.search{display:flex;align-items:center;gap:8px;background:var(--fill);border-radius:10px;padding:8px 12px;margin-bottom:12px}
+.search input{flex:1;background:none;border:0;font-size:16px;min-width:0}
+.list{background:var(--card);border-radius:12px;overflow:hidden}
+.row{display:flex;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--sep);width:100%;text-align:left}
+.row:last-child{border-bottom:0}
+.row .th{width:60px;height:60px;border-radius:8px;background:var(--fill);flex:none;object-fit:cover}
+.row .tx{flex:1;min-width:0}
+.row b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row small{display:block;color:var(--ink2);font-size:13px}
+.row .chev{color:var(--ink2)}
+.empty{text-align:center;color:var(--ink2);padding:60px 20px}
+.empty b{display:block;color:var(--ink);font-size:18px;margin-bottom:6px}
+.fab{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 22px);transform:translateX(-50%);background:var(--accent);color:#fff;font-weight:700;font-size:17px;padding:14px 34px;border-radius:999px;box-shadow:0 10px 26px rgba(10,100,214,.4);display:flex;align-items:center;gap:8px}
+.fab svg{width:20px;height:20px}
+.hdr{color:var(--ink2);font-size:14px;margin-bottom:12px}
+.hdr b{display:block;color:var(--ink);font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.cell{text-align:left}
+.cell img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;background:var(--fill);display:block}
+.cell b{display:block;font-size:13px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.cell small{color:var(--ink2);font-size:12px}
+/* forms */
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.form{background:var(--bg);border-radius:14px;width:min(480px,100%);overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.form .nav{padding-top:10px}
+.form .grp{background:var(--card);margin:14px 16px 0;border-radius:10px;overflow:hidden}
+.form .grp input,.form .grp textarea{display:block;width:100%;border:0;background:none;padding:12px 14px;border-bottom:1px solid var(--sep);font-size:16px;resize:none}
+.form .grp :last-child{border-bottom:0}
+.form .lab{font-size:12px;color:var(--ink2);margin:14px 30px -6px;letter-spacing:.04em}
+.form .pad{height:16px}
+.form .del{display:block;width:100%;color:var(--danger);text-align:center;padding:12px;background:var(--card);margin:14px 16px 0;width:calc(100% - 32px);border-radius:10px}
+/* editor */
+.ed .nav{gap:10px}
+.ed .memo{flex:1;max-width:420px;background:var(--fill);border-radius:999px;padding:7px 14px;border:0;font-size:14px;min-width:60px}
+.ed .nav .sp{flex:1}
+.pill{border-radius:999px;padding:7px 14px;font-weight:600;font-size:14px;white-space:nowrap}
+.pill.sec{background:rgba(10,100,214,.14);color:var(--accent)}
+.pill.pri{background:var(--accent);color:#fff}
+.stage{flex:1;position:relative;background:var(--stage);overflow:hidden;touch-action:none}
+.stage canvas{position:absolute;touch-action:none}
+.pal{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 12px);transform:translateX(-50%);display:flex;align-items:center;gap:4px;padding:6px 8px;background:var(--bar);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.22);max-width:calc(100% - 20px);overflow-x:auto;z-index:3}
+#colors,#selActs{display:flex;align-items:center;flex:none}
+.pal .dv{width:1px;height:28px;background:var(--sep);margin:0 4px;flex:none}
+.tool{width:54px;height:46px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;flex:none}
+.tool svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tool.on{background:var(--accent);color:#fff}
+.sw{width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.2);margin:0 3px;flex:none;position:relative}
+.sw.on::after{content:"";position:absolute;inset:-5px;border:2px solid var(--ink);border-radius:50%}
+.seg{display:flex;background:var(--fill);border-radius:8px;padding:2px;flex:none}
+.seg button{width:36px;height:28px;border-radius:6px;display:grid;place-items:center}
+.seg button.on{background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.seg i{display:block;border-radius:50%;background:currentColor}
+.menu{position:absolute;right:12px;top:calc(env(safe-area-inset-top) + 56px);z-index:6;background:var(--bar);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,.25);width:240px;padding:6px 0;font-size:15px}
+.menu .mh{padding:8px 16px 4px;font-size:12px;color:var(--ink2)}
+.menu .ms{height:1px;background:var(--sep);margin:6px 0}
+.menu .mi{display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 16px;text-align:left}
+.menu .mi .chk{opacity:0;color:var(--accent);font-weight:700}
+.menu .mi.on .chk{opacity:1}
+.menu .mi.red{color:var(--danger)}
+.ask{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);background:var(--card);border-radius:14px;padding:16px;box-shadow:0 14px 40px rgba(0,0,0,.3);width:280px;z-index:7}
+.ask b{display:block;margin-bottom:8px;font-size:16px}
+.ask input{width:100%;border:1px solid var(--sep);border-radius:8px;padding:10px;font-size:18px;background:var(--bg)}
+.ask .acts{display:flex;justify-content:flex-end;gap:18px;margin-top:12px}
+.ask button{color:var(--accent);font-weight:600;font-size:16px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 90px);transform:translateX(-50%);background:rgba(30,30,32,.92);color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;z-index:30;pointer-events:none}
+/* photo detail */
+.view{flex:1;background:#000;display:grid;place-items:center;overflow:hidden;position:relative}
+.view img{max-width:100%;max-height:100%;object-fit:contain}
+.bb{display:flex;gap:10px;align-items:center;padding:10px 16px calc(env(safe-area-inset-bottom) + 10px);background:var(--bar);border-top:1px solid var(--sep)}
+.bb input{flex:1;background:var(--fill);border:0;border-radius:999px;padding:8px 14px;font-size:15px;min-width:0}
+.bb .tg{background:var(--fill);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600}
+.bb .tg.on{background:var(--accent);color:#fff}
+.hint{font-size:12px;color:var(--ink2);text-align:center;padding:8px 16px 0}
+</style>
+
+<!-- 案件一覧 -->
+<div class="screen" id="s-list">
+  <div class="nav"><span class="b"></span><span class="t">案件一覧</span><button class="b r" id="addProject">＋ 案件</button></div>
+  <div class="body">
+    <div class="big">案件一覧</div>
+    <div class="search"><span>🔍</span><input id="q" placeholder="案件名・現場名で検索"></div>
+    <div id="projects"></div>
+  </div>
+</div>
+
+<!-- 案件詳細 -->
+<div class="screen" id="s-proj" hidden>
+  <div class="nav"><button class="b" id="backList">‹ 案件一覧</button><span class="t" id="pTitle"></span><button class="b r" id="editProject">編集</button></div>
+  <div class="body">
+    <div class="hdr" id="pHdr"></div>
+    <div id="photos" class="grid"></div>
+  </div>
+  <button class="fab" id="shoot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5A2 2 0 015.5 6.5H8l1.4-2h5.2l1.4 2h2.5a2 2 0 012 2v9a2 2 0 01-2 2h-13a2 2 0 01-2-2z"/><circle cx="12" cy="13" r="3.2"/></svg>撮影</button>
+  <input type="file" accept="image/*" capture="environment" id="camInput" hidden>
+  <input type="file" accept="image/*" id="libInput" hidden>
+</div>
+
+<!-- 書き込み -->
+<div class="screen ed" id="s-edit" hidden>
+  <div class="nav">
+    <button class="ic" id="edClose" aria-label="閉じる">✕</button>
+    <input class="memo" id="edMemo" placeholder="メモ（部位・備考など）"><span class="sp"></span>
+    <button class="ic" id="edUndo" aria-label="取り消し"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 13.5L4 9l4.5-4.5"/><path d="M4 9h9.5a5.5 5.5 0 010 11H10"/></svg></button>
+    <button class="pill sec" id="edNext" hidden>次を撮る</button>
+    <button class="pill pri" id="edDone">完了</button>
+    <button class="ic" id="edMenu" aria-label="メニュー">☰</button>
+  </div>
+  <div class="stage" id="stage"><canvas id="cv"></canvas>
+    <div class="pal" id="pal">
+      <button class="tool on" data-tool="pen"><svg viewBox="0 0 24 24"><path d="M5 19l1-4L16.5 4.5a2.1 2.1 0 013 3L9 18z"/><path d="M14.5 6.5l3 3"/></svg>手書き</button>
+      <button class="tool" data-tool="arrow"><svg viewBox="0 0 24 24"><path d="M5 19L19 5M9 5h10v10"/></svg>矢印</button>
+      <button class="tool" data-tool="dim"><svg viewBox="0 0 24 24"><path d="M3 12h18M3 8v8M21 8v8"/></svg>寸法線</button>
+      <button class="tool" data-tool="line"><svg viewBox="0 0 24 24"><path d="M4 20L20 4"/></svg>直線</button>
+      <button class="tool" data-tool="text"><svg viewBox="0 0 24 24"><path d="M5 6h14M12 6v13"/></svg>テキスト</button>
+      <button class="tool" data-tool="select"><svg viewBox="0 0 24 24"><path d="M6 3l14 8-6 2-2 6z"/></svg>選択</button>
+      <span class="dv"></span>
+      <span id="colors"></span>
+      <span class="dv"></span>
+      <div class="seg" id="sizes"><button data-s="0"><i style="width:5px;height:5px"></i></button><button data-s="1" class="on"><i style="width:9px;height:9px"></i></button><button data-s="2"><i style="width:13px;height:13px"></i></button></div>
+      <span id="selActs" hidden><span class="dv"></span><button class="tool" id="selText"><svg viewBox="0 0 24 24"><path d="M5 6h14M12 6v13"/></svg>文字</button><button class="tool" id="selDel" style="color:var(--danger)"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>削除</button></span>
+    </div>
+    <div class="menu" id="menu" hidden>
+      <div class="mh">手書きペン</div>
+      <button class="mi on" data-pen="pen"><span>ペン</span><span class="chk">✓</span></button>
+      <button class="mi" data-pen="marker"><span>マーカー</span><span class="chk">✓</span></button>
+      <button class="mi" data-pen="eraser"><span>消しゴム</span><span class="chk">✓</span></button>
+      <div class="mh">太さ</div>
+      <button class="mi" data-w="0.5"><span>細い</span><span class="chk">✓</span></button>
+      <button class="mi on" data-w="1"><span>標準</span><span class="chk">✓</span></button>
+      <button class="mi" data-w="2"><span>太い</span><span class="chk">✓</span></button>
+      <div class="ms"></div>
+      <button class="mi" id="finger"><span>指でも手書きする</span><span class="chk">✓</span></button>
+      <div class="ms"></div>
+      <button class="mi red" id="clearInk"><span>手書きをすべて消す</span></button>
+      <button class="mi red" id="clearShapes"><span>図形をすべて消す</span></button>
+    </div>
+    <div class="ask" id="ask" hidden><b id="askT">寸法を入力</b><input id="askI" inputmode="text"><div class="acts"><button id="askC">キャンセル</button><button id="askO">OK</button></div></div>
+  </div>
+</div>
+
+<!-- 写真詳細 -->
+<div class="screen" id="s-photo" hidden>
+  <div class="nav"><button class="b" id="phClose">閉じる</button><span class="t" id="phTitle"></span><button class="b r" id="phEdit">書き込みを編集</button></div>
+  <div class="view"><img id="phImg" alt=""></div>
+  <div class="bb">
+    <input id="phMemo" placeholder="メモ">
+    <button class="tg" id="phOrig">元画像</button>
+    <button class="tg" id="phShare">共有 / 保存</button>
+    <button class="tg" id="phDel" style="color:var(--danger)">削除</button>
+  </div>
+</div>
+
+<div class="sheet" id="sheet" hidden></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+const uid=()=>crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2);
+const fmtDT=d=>new Date(d).toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+const fmtD=d=>new Date(d).toLocaleDateString('ja-JP',{year:'numeric',month:'numeric',day:'numeric'});
+function confirmBox(msg,okLabel){return new Promise(res=>{const sh=$('#sheet');sh.hidden=false;sh.innerHTML=`<div class="form" style="width:min(340px,100%)"><div style="padding:22px 20px 8px;text-align:center;font-weight:600">${msg}</div><div style="display:flex;gap:10px;padding:12px 16px 16px"><button class="pill sec" style="flex:1;padding:12px" id="cbN">キャンセル</button><button class="pill pri" style="flex:1;padding:12px;background:var(--danger)" id="cbY">${okLabel||'削除'}</button></div></div>`;$('#cbN').onclick=()=>{sh.hidden=true;res(false)};$('#cbY').onclick=()=>{sh.hidden=true;res(true)}})}
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,1800)}
+
+/* ---------- IndexedDB ---------- */
+const DB=(()=>{let db;
+ const open=()=>new Promise((res,rej)=>{const r=indexedDB.open('workcamera',1);r.onupgradeneeded=e=>{const d=e.target.result;d.createObjectStore('projects',{keyPath:'id'});const p=d.createObjectStore('photos',{keyPath:'id'});p.createIndex('projectId','projectId')};r.onsuccess=()=>{db=r.result;res(db)};r.onerror=()=>rej(r.error)});
+ const tx=(store,mode,fn)=>open().then(d=>new Promise((res,rej)=>{const t=d.transaction(store,mode);const s=t.objectStore(store);const out=fn(s);t.oncomplete=()=>res(out&&out.result!==undefined?out.result:out);t.onerror=()=>rej(t.error)}));
+ const all=(store)=>open().then(d=>new Promise((res,rej)=>{const r=d.transaction(store).objectStore(store).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}));
+ const get=(store,id)=>open().then(d=>new Promise((res,rej)=>{const r=d.transaction(store).objectStore(store).get(id);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}));
+ return{put:(s,v)=>tx(s,'readwrite',o=>o.put(v)),del:(s,id)=>tx(s,'readwrite',o=>o.delete(id)),all,get,
+  photosOf:async pid=>(await all('photos')).filter(p=>p.projectId===pid).sort((a,b)=>b.createdAt-a.createdAt)};
+})();
+
+/* ---------- 画像ユーティリティ ---------- */
+function loadImage(blob){return new Promise((res,rej)=>{const u=URL.createObjectURL(blob);const im=new Image();im.onload=()=>{URL.revokeObjectURL(u);res(im)};im.onerror=rej;im.src=u})}
+async function normalize(blob,max=2600){const im=await loadImage(blob);const s=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));const w=Math.round(im.naturalWidth*s),h=Math.round(im.naturalHeight*s);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);return{blob:await new Promise(r=>c.toBlob(r,'image/jpeg',.92)),w,h}}
+function thumbURL(blob){return URL.createObjectURL(blob)}
+
+/* ---------- 図形描画（表示・書き出し共通） ---------- */
+const COLORS=['#E5342A','#FF9500','#FFCC00','#34C759','#0A64D6','#000000','#FFFFFF'];
+const SIZE_M=[0.6,1,1.6];
+function drawShape(c,s,W,H,selected){const a=[s.a[0]*W,s.a[1]*H],b=[s.b[0]*W,s.b[1]*H],lw=Math.max(1,0.004*W*(s.m||1)),fs=Math.max(8,0.03*W*(s.m||1)),col=s.c;
+ const line=(p,q,w)=>{c.lineCap='round';c.strokeStyle='rgba(255,255,255,.85)';c.lineWidth=w*2.2;c.beginPath();c.moveTo(p[0],p[1]);c.lineTo(q[0],q[1]);c.stroke();c.strokeStyle=col;c.lineWidth=w;c.stroke()};
+ const head=(tip,tail)=>{const dx=tip[0]-tail[0],dy=tip[1]-tail[1],l=Math.hypot(dx,dy)||1,ux=dx/l,uy=dy/l,len=lw*7,sp=lw*3.5,bx=tip[0]-ux*len,by=tip[1]-uy*len;c.beginPath();c.moveTo(tip[0],tip[1]);c.lineTo(bx-uy*sp,by+ux*sp);c.lineTo(bx+uy*sp,by-ux*sp);c.closePath();c.strokeStyle='rgba(255,255,255,.85)';c.lineWidth=lw*1.2;c.lineJoin='round';c.stroke();c.fillStyle=col;c.fill()};
+ const label=(t,x,y,tl)=>{c.font='800 '+fs+'px -apple-system,"Hiragino Sans",sans-serif';const tw=c.measureText(t).width,pad=fs*.25,bw=tw+pad*2,bh=fs*1.3+pad*2,x0=tl?x:x-bw/2,y0=tl?y:y-bh/2;c.fillStyle=col.toUpperCase()==='#FFFFFF'?'rgba(0,0,0,.65)':'rgba(255,255,255,.88)';c.beginPath();c.roundRect(x0,y0,bw,bh,pad);c.fill();c.fillStyle=col;c.textBaseline='middle';c.textAlign='left';c.fillText(t,x0+pad,y0+bh/2)};
+ const mid=off=>{const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2,dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1;let nx=-dy/l,ny=dx/l;if(ny>0){nx=-nx;ny=-ny}return[mx+nx*off,my+ny*off]};
+ if(s.k==='line')line(a,b,lw);
+ if(s.k==='arrow'){line(a,b,lw);head(b,a);if(s.t){const m=mid(lw*4+fs*.6);label(s.t,m[0],m[1])}}
+ if(s.k==='dim'){line(a,b,lw);head(a,b);head(b,a);const dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1,nx=-dy/l,ny=dx/l,tk=lw*5;[a,b].forEach(p=>line([p[0]-nx*tk,p[1]-ny*tk],[p[0]+nx*tk,p[1]+ny*tk],lw));const m=mid(lw*4+fs*.7);label(s.t||'?',m[0],m[1])}
+ if(s.k==='text')label(s.t||'テキスト',a[0],a[1],true);
+ if(selected){[a,s.k==='text'?null:b].filter(Boolean).forEach(p=>{c.beginPath();c.arc(p[0],p[1],10,0,7);c.fillStyle='rgba(255,255,255,.7)';c.fill();c.strokeStyle='#0A64D6';c.lineWidth=2.5;c.stroke()})}}
+function drawStroke(c,s,W,H){if(s.p.length<1)return;c.globalCompositeOperation=s.k==='eraser'?'destination-out':'source-over';c.strokeStyle=s.k==='marker'?s.c+'80':s.c;c.lineCap=s.k==='marker'?'butt':'round';c.lineJoin='round';const base=s.w*W;
+ if(s.p.length===1){const p=s.p[0];c.fillStyle=c.strokeStyle;c.beginPath();c.arc(p[0]*W,p[1]*H,base*(p[2]||1)/2,0,7);c.fill();c.globalCompositeOperation='source-over';return}
+ for(let i=1;i<s.p.length;i++){const p=s.p[i-1],q=s.p[i];c.lineWidth=base*(s.k==='pen'?(0.55+0.9*(q[2]||0.5)):1);c.beginPath();c.moveTo(p[0]*W,p[1]*H);c.lineTo(q[0]*W,q[1]*H);c.stroke()}
+ c.globalCompositeOperation='source-over'}
+function renderAll(c,img,W,H,shapes,strokes,sel,draft,cur){c.clearRect(0,0,W,H);c.drawImage(img,0,0,W,H);shapes.forEach(s=>drawShape(c,s,W,H,s===sel));if(draft)drawShape(c,draft,W,H,false);
+ const ink=document.createElement('canvas');ink.width=W;ink.height=H;const ic=ink.getContext('2d');strokes.forEach(s=>drawStroke(ic,s,W,H));if(cur)drawStroke(ic,cur,W,H);c.drawImage(ink,0,0)}
+
+/* ---------- 画面遷移 ---------- */
+const screens=['s-list','s-proj','s-edit','s-photo'];
+function show(id){screens.forEach(s=>$('#'+s).hidden=s!==id)}
+let currentProject=null;
+
+/* ---------- 案件一覧 ---------- */
+async function renderProjects(){const q=$('#q').value.trim();let ps=await DB.all('projects');ps.sort((a,b)=>b.createdAt-a.createdAt);if(q)ps=ps.filter(p=>(p.name+p.site+p.memo).includes(q));
+ const photos=await DB.all('photos');const box=$('#projects');box.innerHTML='';
+ if(!ps.length){box.innerHTML='<div class="empty"><b>案件がありません</b>右上の「＋ 案件」から現場を作成して撮影を始めましょう。</div>';return}
+ const list=document.createElement('div');list.className='list';
+ ps.forEach(p=>{const mine=photos.filter(x=>x.projectId===p.id).sort((a,b)=>b.createdAt-a.createdAt);const b=document.createElement('button');b.className='row';
+  const th=mine[0]?`<img class="th" src="${thumbURL(mine[0].ann)}" alt="">`:'<span class="th"></span>';
+  b.innerHTML=`${th}<span class="tx"><b></b><small class="site"></small><small>${fmtD(p.createdAt)}・${mine.length}枚</small></span><span class="chev">›</span>`;
+  b.querySelector('b').textContent=p.name;b.querySelector('.site').textContent=p.site||'';
+  b.onclick=()=>openProject(p.id);list.appendChild(b)});
+ box.appendChild(list)}
+$('#q').addEventListener('input',renderProjects);
+$('#addProject').onclick=()=>projectForm(null);
+
+function projectForm(p){const sh=$('#sheet');sh.hidden=false;sh.innerHTML=`<div class="form"><div class="nav"><button class="b" id="fCancel">キャンセル</button><span class="t">${p?'案件を編集':'新しい案件'}</span><button class="b r" id="fOK">${p?'保存':'作成'}</button></div>
+ <div class="lab">案件</div><div class="grp"><input id="fName" placeholder="案件名（必須）"><input id="fSite" placeholder="現場名・住所"></div>
+ <div class="lab">メモ</div><div class="grp"><textarea id="fMemo" rows="3" placeholder="備考"></textarea></div>${p?'<button class="del" id="fDel">この案件を削除</button>':''}<div class="pad"></div></div>`;
+ if(p){$('#fName').value=p.name;$('#fSite').value=p.site;$('#fMemo').value=p.memo}
+ $('#fCancel').onclick=()=>sh.hidden=true;
+ $('#fOK').onclick=async()=>{const name=$('#fName').value.trim();if(!name){toast('案件名を入力してください');return}
+  const obj=p?{...p}:{id:uid(),createdAt:Date.now()};obj.name=name;obj.site=$('#fSite').value.trim();obj.memo=$('#fMemo').value.trim();await DB.put('projects',obj);sh.hidden=true;
+  if(p){currentProject=obj;renderProject()}else{renderProjects();openProject(obj.id)}};
+ if(p)$('#fDel').onclick=async()=>{if(!await confirmBox('この案件と写真をすべて削除しますか？'))return;for(const ph of await DB.photosOf(p.id))await DB.del('photos',ph.id);await DB.del('projects',p.id);sh.hidden=true;show('s-list');renderProjects()};
+ setTimeout(()=>$('#fName').focus(),50)}
+
+/* ---------- 案件詳細 ---------- */
+async function openProject(id){currentProject=await DB.get('projects',id);show('s-proj');renderProject()}
+async function renderProject(){const p=currentProject;$('#pTitle').textContent=p.name;const photos=await DB.photosOf(p.id);
+ $('#pHdr').innerHTML=`${p.site?'<b>📍 '+esc(p.site)+'</b>':''}${p.memo?'<div>'+esc(p.memo)+'</div>':''}${photos.length}枚・作成 ${fmtD(p.createdAt)}`;
+ const g=$('#photos');g.innerHTML='';if(!photos.length){g.innerHTML='<div class="empty" style="grid-column:1/-1"><b>写真がありません</b>下の「撮影」を押すと、撮った直後に Apple Pencil で書き込めます。</div>';return}
+ photos.forEach(ph=>{const b=document.createElement('button');b.className='cell';b.innerHTML=`<img src="${thumbURL(ph.ann)}" alt=""><b></b><small>${fmtDT(ph.createdAt)}</small>`;b.querySelector('b').textContent=ph.memo||'　';b.onclick=()=>openPhoto(ph.id);g.appendChild(b)})}
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+$('#backList').onclick=()=>{show('s-list');renderProjects()};
+$('#editProject').onclick=()=>projectForm(currentProject);
+$('#shoot').onclick=()=>{$('#camInput').value='';$('#camInput').click()};
+$('#shoot').addEventListener('contextmenu',e=>{e.preventDefault();$('#libInput').value='';$('#libInput').click()});
+$('#camInput').onchange=e=>{const f=e.target.files[0];if(f)startEdit(f,null)};
+$('#libInput').onchange=e=>{const f=e.target.files[0];if(f)startEdit(f,null)};
+
+/* ---------- 書き込み ---------- */
+const ED={img:null,W:0,H:0,shapes:[],strokes:[],tool:'pen',color:COLORS[0],size:1,penKind:'pen',penW:1,finger:false,sel:null,draft:null,cur:null,photo:null,origBlob:null,fit:null};
+const cv=$('#cv'),ctx=cv.getContext('2d'),stage=$('#stage');
+async function startEdit(file,photo){show('s-edit');toast('写真を読み込み中…');
+ let blob,w,h;if(photo){blob=photo.orig;w=photo.w;h=photo.h}else{const n=await normalize(file);blob=n.blob;w=n.w;h=n.h}
+ ED.img=await loadImage(blob);ED.W=w;ED.H=h;ED.origBlob=blob;ED.photo=photo;
+ ED.shapes=photo?JSON.parse(JSON.stringify(photo.shapes||[])):[];ED.strokes=photo?JSON.parse(JSON.stringify(photo.strokes||[])):[];
+ ED.sel=null;ED.draft=null;ED.cur=null;$('#edMemo').value=photo?photo.memo:'';$('#edNext').hidden=!!photo;setTool('pen');layout();$('#toast').hidden=true}
+function layout(){const r=stage.getBoundingClientRect();if(!ED.img||!r.width)return;const s=Math.min(r.width/ED.W,(r.height-90)/ED.H);const w=Math.floor(ED.W*s),h=Math.floor(ED.H*s);const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);cv.style.width=w+'px';cv.style.height=h+'px';cv.style.left=Math.floor((r.width-w)/2)+'px';cv.style.top=Math.floor((r.height-90-h)/2)+'px';ED.fit={w,h,dpr};render()}
+window.addEventListener('resize',()=>{if(!$('#s-edit').hidden)layout()});
+function render(){if(!ED.fit)return;const {w,h,dpr}=ED.fit;ctx.setTransform(dpr,0,0,dpr,0,0);renderAll(ctx,ED.img,w,h,ED.shapes,ED.strokes,ED.sel,ED.draft,ED.cur)}
+function setTool(t){ED.tool=t;ED.sel=null;document.querySelectorAll('#pal .tool[data-tool]').forEach(b=>b.classList.toggle('on',b.dataset.tool===t));$('#selActs').hidden=true;render()}
+$('#pal').addEventListener('click',e=>{const b=e.target.closest('.tool[data-tool]');if(b)setTool(b.dataset.tool)});
+COLORS.forEach((c,i)=>{const b=document.createElement('button');b.className='sw'+(i===0?' on':'');b.style.background=c;b.setAttribute('aria-label','色');b.onclick=()=>{ED.color=c;document.querySelectorAll('.sw').forEach(x=>x.classList.toggle('on',x===b));if(ED.sel){ED.sel.c=c;render()}};$('#colors').appendChild(b)});
+$('#sizes').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;ED.size=+b.dataset.s;$('#sizes').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));if(ED.sel){ED.sel.m=SIZE_M[ED.size];render()}});
+$('#selDel').onclick=()=>{ED.shapes=ED.shapes.filter(s=>s!==ED.sel);ED.sel=null;$('#selActs').hidden=true;render()};
+$('#selText').onclick=()=>{if(ED.sel)ask(ED.sel,true)};
+$('#edUndo').onclick=()=>{if(ED.tool==='pen')ED.strokes.pop();else{ED.shapes.pop();ED.sel=null;$('#selActs').hidden=true}render()};
+// menu
+const menu=$('#menu');$('#edMenu').onclick=e=>{e.stopPropagation();menu.hidden=!menu.hidden};
+document.addEventListener('pointerdown',e=>{if(!menu.hidden&&!menu.contains(e.target)&&e.target!==$('#edMenu'))menu.hidden=true});
+menu.addEventListener('click',e=>{const b=e.target.closest('.mi');if(!b)return;
+ if(b.dataset.pen){ED.penKind=b.dataset.pen;menu.querySelectorAll('[data-pen]').forEach(x=>x.classList.toggle('on',x===b));setTool('pen')}
+ else if(b.dataset.w){ED.penW=+b.dataset.w;menu.querySelectorAll('[data-w]').forEach(x=>x.classList.toggle('on',x===b))}
+ else if(b.id==='finger'){ED.finger=!ED.finger;b.classList.toggle('on',ED.finger)}
+ else if(b.id==='clearInk'){ED.strokes=[];render();menu.hidden=true}
+ else if(b.id==='clearShapes'){ED.shapes=[];ED.sel=null;render();menu.hidden=true}});
+// pointer
+let down=false,start=null,last=null,pid=null;
+function norm(e){const r=cv.getBoundingClientRect();return[Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))]}
+function distSeg(p,a,b){const W=ED.fit.w,H=ED.fit.h,ax=a[0]*W,ay=a[1]*H,bx=b[0]*W,by=b[1]*H,px=p[0]*W,py=p[1]*H,dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;let t=l2?((px-ax)*dx+(py-ay)*dy)/l2:0;t=Math.max(0,Math.min(1,t));return Math.hypot(px-(ax+dx*t),py-(ay+dy*t))}
+function hit(p){const W=ED.fit.w,H=ED.fit.h;for(let i=ED.shapes.length-1;i>=0;i--){const s=ED.shapes[i];if(s.k==='text'){const fs=0.03*W*(s.m||1),w=(s.t.length*fs*.9+fs),h=fs*1.6,x=s.a[0]*W,y=s.a[1]*H;if(p[0]*W>=x-12&&p[0]*W<=x+w&&p[1]*H>=y-12&&p[1]*H<=y+h)return s}else if(distSeg(p,s.a,s.b)<26)return s}return null}
+cv.addEventListener('pointerdown',e=>{if(!$('#ask').hidden)return;if(ED.tool==='pen'&&e.pointerType==='touch'&&!ED.finger)return;if(down)return;down=true;pid=e.pointerId;cv.setPointerCapture(pid);e.preventDefault();const p=norm(e);start=p;last=p;
+ if(ED.tool==='pen'){const base=0.004*ED.penW*(ED.penKind==='marker'?3:ED.penKind==='eraser'?4:1);ED.cur={k:ED.penKind,c:ED.color,w:base,p:[[p[0],p[1],e.pressure||0.5]]}}
+ else if(ED.tool==='select'){ED.sel=hit(p);$('#selActs').hidden=!ED.sel;if(ED.sel&&ED.sel.k==='line')$('#selText').hidden=true;else $('#selText').hidden=false;render()}});
+cv.addEventListener('pointermove',e=>{if(!down||e.pointerId!==pid)return;e.preventDefault();const p=norm(e);
+ if(ED.tool==='pen'&&ED.cur){const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];evs.forEach(ev=>{const q=norm(ev);ED.cur.p.push([q[0],q[1],ev.pressure||0.5])});render()}
+ else if(['arrow','dim','line'].includes(ED.tool)){ED.draft={k:ED.tool,a:start,b:p,t:'',c:ED.color,m:SIZE_M[ED.size]};render()}
+ else if(ED.tool==='select'&&ED.sel){const dx=p[0]-last[0],dy=p[1]-last[1];ED.sel.a=[ED.sel.a[0]+dx,ED.sel.a[1]+dy];ED.sel.b=[ED.sel.b[0]+dx,ED.sel.b[1]+dy];render()}
+ last=p});
+function up(e){if(!down||e.pointerId!==pid)return;down=false;const p=norm(e);const d=Math.hypot((p[0]-start[0])*ED.fit.w,(p[1]-start[1])*ED.fit.h);
+ if(ED.tool==='pen'&&ED.cur){ED.strokes.push(ED.cur);ED.cur=null}
+ else if((ED.tool==='arrow'||ED.tool==='line')&&ED.draft&&d>=12)ED.shapes.push(ED.draft);
+ else if(ED.tool==='dim'&&ED.draft&&d>=12)ask(ED.draft,false);
+ else if(ED.tool==='text'&&d<12)ask({k:'text',a:p,b:p,t:'',c:ED.color,m:SIZE_M[ED.size]*1.15},false);
+ ED.draft=null;render()}
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+// text prompt
+let pending=null,pendingExisting=false;
+function ask(s,existing){pending=s;pendingExisting=existing;$('#askT').textContent=s.k==='dim'?'寸法を入力':s.k==='text'?'テキストを入力':'ラベル（任意）';$('#askI').placeholder=s.k==='dim'?'例: 1820mm':'例: 開口 補強要';$('#askI').value=existing?s.t:'';$('#askI').inputMode=s.k==='dim'?'text':'text';if(!existing)ED.draft=s;render();$('#ask').hidden=false;setTimeout(()=>$('#askI').focus(),50)}
+function closeAsk(ok){if(!pending)return;const v=$('#askI').value.trim();if(ok){pending.t=v||(pending.k==='dim'?'?':'');if(!pendingExisting&&!(pending.k==='text'&&!v))ED.shapes.push(pending)}pending=null;ED.draft=null;$('#ask').hidden=true;render()}
+$('#askO').onclick=()=>closeAsk(true);$('#askC').onclick=()=>closeAsk(false);$('#askI').addEventListener('keydown',e=>{if(e.key==='Enter')closeAsk(true);if(e.key==='Escape')closeAsk(false)});
+// save
+async function exportBlob(){const c=document.createElement('canvas');c.width=ED.W;c.height=ED.H;renderAll(c.getContext('2d'),ED.img,ED.W,ED.H,ED.shapes,ED.strokes,null,null,null);return new Promise(r=>c.toBlob(r,'image/jpeg',.9))}
+async function saveEdit(){toast('保存中…');const ann=await exportBlob();const memo=$('#edMemo').value.trim();
+ if(ED.photo){const ph={...ED.photo,ann,memo,shapes:ED.shapes,strokes:ED.strokes,updatedAt:Date.now()};await DB.put('photos',ph);return ph}
+ const ph={id:uid(),projectId:currentProject.id,createdAt:Date.now(),updatedAt:Date.now(),memo,orig:ED.origBlob,ann,w:ED.W,h:ED.H,shapes:ED.shapes,strokes:ED.strokes};await DB.put('photos',ph);return ph}
+$('#edDone').onclick=async()=>{const ph=await saveEdit();toast('保存しました');if(ED.photo){openPhoto(ph.id)}else{show('s-proj');renderProject()}};
+$('#edNext').onclick=async()=>{await saveEdit();toast('保存しました');show('s-proj');renderProject();$('#camInput').value='';$('#camInput').click()};
+$('#edClose').onclick=async()=>{if(ED.strokes.length||ED.shapes.length){if(!await confirmBox('編集を破棄しますか？','破棄'))return}if(ED.photo)openPhoto(ED.photo.id);else{show('s-proj');renderProject()}};
+
+/* ---------- 写真詳細 ---------- */
+let curPhoto=null,showOrig=false;
+async function openPhoto(id){curPhoto=await DB.get('photos',id);showOrig=false;show('s-photo');renderPhoto()}
+function renderPhoto(){const ph=curPhoto;$('#phTitle').textContent=fmtDT(ph.createdAt);$('#phImg').src=thumbURL(showOrig?ph.orig:ph.ann);$('#phMemo').value=ph.memo||'';$('#phOrig').classList.toggle('on',showOrig)}
+$('#phClose').onclick=()=>{show('s-proj');renderProject()};
+$('#phOrig').onclick=()=>{showOrig=!showOrig;renderPhoto()};
+$('#phEdit').onclick=()=>startEdit(null,curPhoto);
+$('#phMemo').addEventListener('change',async()=>{curPhoto.memo=$('#phMemo').value.trim();await DB.put('photos',curPhoto);toast('メモを保存しました')});
+$('#phDel').onclick=async()=>{if(!await confirmBox('この写真を削除しますか？'))return;await DB.del('photos',curPhoto.id);show('s-proj');renderProject()};
+$('#phShare').onclick=async()=>{const ph=curPhoto;const blob=showOrig?ph.orig:ph.ann;const name=`${currentProject.name}_${new Date(ph.createdAt).toISOString().slice(0,16).replace(/[-:T]/g,'')}${showOrig?'_orig':''}.jpg`;
+ const file=new File([blob],name,{type:'image/jpeg'});
+ try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return}}catch(e){if(e&&e.name==='AbortError')return}
+ try{const dl=window.claude&&await window.claude.use('downloads');if(dl){await dl.save({filename:name,data:blob});toast('保存しました');return}}catch(e){if(e&&e.code==='declined')return}
+ const a=document.createElement('a');a.href=thumbURL(blob);a.download=name;a.click()};
+
+/* ---------- 起動 ---------- */
+show('s-list');renderProjects();
+})();
+</script>
+
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
+</script>
+</body>
+</html>

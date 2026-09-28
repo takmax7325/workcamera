@@ -128,7 +128,7 @@ input,textarea{font:inherit;color:inherit}
 .cam .pv{flex:1;position:relative;overflow:hidden;display:grid;place-items:center;touch-action:none;min-width:0}
 .cam .fr{position:relative;overflow:hidden;background:#111}
 .cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;transform-origin:50% 50%}
-.cam .zl{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 16px);transform:translateX(-50%);background:rgba(0,0,0,.55);padding:4px 14px;border-radius:999px;font-weight:700;font-size:15px;color:#FFD60A;pointer-events:none;transition:opacity .3s}
+.cam .zl{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 16px);transform:translateX(-50%);background:rgba(0,0,0,.55);padding:4px 14px;border-radius:999px;font-weight:700;font-size:15px;color:#FFD60A;pointer-events:none}
 .cam .tl{position:absolute;top:calc(env(safe-area-inset-top) + 12px);left:12px;display:flex;gap:10px;z-index:2}
 .cam .cb{background:rgba(0,0,0,.5);color:#fff;border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600}
 .cam .side{width:112px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:calc(env(safe-area-inset-top) + 12px) calc(env(safe-area-inset-right) + 8px) calc(env(safe-area-inset-bottom) + 12px) 8px}
@@ -142,7 +142,7 @@ input,textarea{font:inherit;color:inherit}
 .cam .lib{width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,.14);display:grid;place-items:center}
 .cam .lib svg{width:24px;height:24px}
 .cam .flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .3s}
-.cam .msg{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:14px;text-align:center;padding:24px;color:#ddd;font-size:15px}
+.cam .msg{position:absolute;inset:0;z-index:3;background:rgba(0,0,0,.72);display:grid;place-content:center;justify-items:center;gap:14px;text-align:center;padding:24px;color:#ddd;font-size:15px}
 .cam .msg button{background:#fff;color:#000;border-radius:999px;padding:10px 20px;font-weight:700}
 </style>
 
@@ -227,12 +227,11 @@ input,textarea{font:inherit;color:inherit}
 <div class="screen cam" id="s-cam" hidden>
   <div class="pv" id="camPv">
     <div class="fr" id="camFr"><video id="camV" playsinline muted autoplay></video><div class="flash" id="camFlash"></div></div>
-    <div class="tl"><button class="cb" id="camClose" aria-label="閉じる">✕ 閉じる</button><button class="cb" id="camStd">標準カメラ</button></div>
+    <div class="tl"><button class="cb" id="camClose" aria-label="閉じる">✕ 閉じる</button><button class="cb" id="camStd">標準カメラ</button><button class="cb" id="camInfo" aria-label="カメラ情報">ⓘ</button></div>
     <div class="zl" id="camZl">1×</div>
     <div class="msg" id="camMsg" hidden></div>
   </div>
   <div class="side">
-    <div class="zs" id="camZs"></div>
     <button class="shut" id="camShut" aria-label="撮影"><i></i></button>
     <button class="lib" id="camLib" aria-label="写真から選ぶ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg></button>
   </div>
@@ -409,51 +408,63 @@ $('#phShare').onclick=async()=>{const ph=curPhoto;const blob=showOrig?ph.orig:ph
  const a=document.createElement('a');a.href=thumbURL(blob);a.download=name;a.click()};
 
 
-/* ---------- アプリ内カメラ（超広角〜ズーム） ---------- */
-const CAM={stream:null,track:null,main:null,uw:null,cur:null,z:1,hw:null,dz:1,zBusy:false,zNext:null,idleT:null,opening:false,detected:false};
+/* ---------- アプリ内カメラ（超広角〜ズーム・ピンチ操作） ---------- */
+/* 表示倍率 z：1 = 通常の広角レンズ、0.5 = 超広角。
+   優先: 仮想カメラ(トリプル/デュアル広角)をハードウェアズームで連続操作（レンズは iPad が自動切替）
+   次点: 超広角と広角の物理カメラを倍率で切り替え
+   最後: 1本のカメラでズーム（ハード or デジタル） */
+const CAM={stream:null,track:null,mode:null,virt:null,main:null,uw:null,cur:null,f:1,z:1,hw:null,dz:1,zBusy:false,zNext:null,idleT:null,opening:false,detected:false,labels:[],minZ:1,maxZ:5};
 const camV=$('#camV'),camPv=$('#camPv'),camFr=$('#camFr');
-const MAXZ=10;
-function camMinZ(){return CAM.uw?0.5:1}
-function camMaxZ(){return MAXZ}
-function fmtZ(z){return (z<1?z.toFixed(1).replace(/^0/,'0'):(Math.abs(z-Math.round(z))<.05?String(Math.round(z)):z.toFixed(1)))+'×'}
-function camMsg(t,btn){const m=$('#camMsg');if(!t){m.hidden=true;return}m.hidden=false;m.innerHTML='';const d=document.createElement('div');d.textContent=t;m.appendChild(d);if(btn){const b=document.createElement('button');b.textContent=btn[0];b.onclick=btn[1];m.appendChild(b)}}
+const MAXZ=5;
+const RE_VIRT=/triple|トリプル|dual[ -]?wide|デュアル広角/i, RE_UW=/ultra ?wide|超広角/i, RE_FRONT=/front|前面|user|facetime/i, RE_MAIN=/^(back camera|背面カメラ)$/i;
+function fmtZ(z){return (Math.abs(z-Math.round(z))<.05?String(Math.round(z)):z.toFixed(1))+'×'}
+function camMsg(t,btn){const m=$('#camMsg');if(!t){m.hidden=true;return}m.hidden=false;m.innerHTML='';const d=document.createElement('div');d.textContent=t;d.style.whiteSpace='pre-line';m.appendChild(d);if(btn){const b=document.createElement('button');b.textContent=btn[0];b.onclick=btn[1];m.appendChild(b)}}
 function camStop(){clearTimeout(CAM.idleT);if(CAM.stream)CAM.stream.getTracks().forEach(t=>t.stop());CAM.stream=null;CAM.track=null;CAM.cur=null;camV.srcObject=null}
 function camFit(){const vw=camV.videoWidth,vh=camV.videoHeight;if(!vw||!vh)return;const r=camPv.getBoundingClientRect();const ar=vw/vh;let w=r.width,h=w/ar;if(h>r.height){h=r.height;w=h*ar}camFr.style.width=Math.floor(w)+'px';camFr.style.height=Math.floor(h)+'px'}
 camV.addEventListener('loadedmetadata',camFit);camV.addEventListener('resize',camFit);window.addEventListener('resize',()=>{if(!$('#s-cam').hidden)camFit()});
-async function camOpenDev(which){
- const id=which==='uw'?CAM.uw:CAM.main;
+async function camGUM(id,extra){
  const v={width:{ideal:4032},height:{ideal:3024}};
  if(id)v.deviceId={exact:id};else v.facingMode={ideal:'environment'};
+ if(extra)Object.assign(v,extra);
  if(CAM.stream)CAM.stream.getTracks().forEach(t=>t.stop());
  const st=await navigator.mediaDevices.getUserMedia({video:v,audio:false});
- CAM.stream=st;CAM.track=st.getVideoTracks()[0];CAM.cur=which;
+ CAM.stream=st;CAM.track=st.getVideoTracks()[0];
  let caps={};try{caps=CAM.track.getCapabilities?CAM.track.getCapabilities():{}}catch(e){}
  CAM.hw=(caps.zoom&&caps.zoom.max>caps.zoom.min)?caps.zoom:null;
  camV.srcObject=st;try{await camV.play()}catch(e){}
 }
+async function camOpenDev(which){await camGUM(which==='uw'?CAM.uw:which==='virt'?CAM.virt:CAM.main,which==='virt'&&CAM.virtZ?{advanced:[{zoom:CAM.virtZ}]}:null);CAM.cur=which}
 async function camDetect(){
  if(CAM.detected)return;CAM.detected=true;
- try{const set=CAM.track.getSettings?CAM.track.getSettings():{};CAM.main=set.deviceId||null;
-  const ds=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');
-  const back=ds.filter(d=>!/front|前面|user/i.test(d.label));
-  const uw=back.find(d=>/ultra ?wide|超広角/i.test(d.label)&&!/dual|triple|デュアル|トリプル/i.test(d.label));
-  if(uw&&uw.deviceId!==CAM.main)CAM.uw=uw.deviceId;
-  const mainCam=back.find(d=>/^(back camera|背面カメラ)$/i.test(d.label.trim()));
-  if(mainCam&&CAM.main!==mainCam.deviceId){CAM.main=mainCam.deviceId;await camOpenDev('main')}
- }catch(e){}
- camPresets();
+ const set=CAM.track&&CAM.track.getSettings?CAM.track.getSettings():{};const firstId=set.deviceId||null;
+ let ds=[];try{ds=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput')}catch(e){}
+ CAM.labels=ds.map(d=>d.label||'(名前なし)');
+ const back=ds.filter(d=>!RE_FRONT.test(d.label));
+ const virt=back.find(d=>/triple|トリプル/i.test(d.label))||back.find(d=>RE_VIRT.test(d.label));
+ const uw=back.find(d=>RE_UW.test(d.label)&&!RE_VIRT.test(d.label));
+ const main=back.find(d=>RE_MAIN.test(d.label.trim()));
+ CAM.main=main?main.deviceId:firstId;CAM.uw=uw?uw.deviceId:null;
+ // 1) 仮想カメラ + ハードウェアズーム
+ if(virt){try{await camGUM(virt.deviceId);if(CAM.hw){CAM.virt=virt.deviceId;CAM.mode='virt';CAM.cur='virt';
+   CAM.f=CAM.hw.min<0.99?1:0.5; // ズーム1が超広角なら表示倍率=ズーム×0.5
+   CAM.minZ=CAM.hw.min*CAM.f;CAM.maxZ=Math.min(MAXZ,Math.max(CAM.hw.max*CAM.f,1));return}}catch(e){}}
+ // 2) 超広角と広角を切り替え
+ if(CAM.uw&&CAM.main&&CAM.uw!==CAM.main){CAM.mode='switch';CAM.minZ=0.5;CAM.maxZ=MAXZ;await camOpenDev('main');return}
+ // 3) 1本のカメラ
+ CAM.mode='single';CAM.minZ=1;CAM.maxZ=MAXZ;
+ if(CAM.main&&CAM.main!==firstId)await camOpenDev('main');else CAM.cur='main';
+ if(CAM.hw&&CAM.hw.min<0.99){CAM.f=1;CAM.minZ=Math.max(0.5,CAM.hw.min)}
 }
-function camPresets(){const box=$('#camZs');box.innerHTML='';const ps=(CAM.uw?[0.5]:[]).concat([1,2,5].filter(z=>z<=camMaxZ()));
- ps.forEach(z=>{const b=document.createElement('button');b.dataset.z=z;b.textContent=fmtZ(z);b.onclick=()=>camSetZoom(z,true);box.appendChild(b)});camZoomUI()}
-function camZoomUI(){const z=CAM.z;const bs=[...document.querySelectorAll('#camZs button')];let act=null;bs.forEach(b=>{if(+b.dataset.z<=z+1e-6)act=b});
- bs.forEach(b=>{const on=b===act;b.classList.toggle('on',on);b.textContent=on?fmtZ(z).replace('×',''):fmtZ(+b.dataset.z).replace('×','')});
- const zl=$('#camZl');zl.textContent=fmtZ(z);zl.style.opacity=1;clearTimeout(camZoomUI.t);camZoomUI.t=setTimeout(()=>zl.style.opacity=0,1400)}
-async function camApplyHw(val){if(CAM.zBusy){CAM.zNext=val;return}CAM.zBusy=true;try{await CAM.track.applyConstraints({advanced:[{zoom:val}]})}catch(e){}CAM.zBusy=false;if(CAM.zNext!=null&&CAM.zNext!==val){const n=CAM.zNext;CAM.zNext=null;camApplyHw(n)}else CAM.zNext=null}
+function camZoomUI(){$('#camZl').textContent=fmtZ(CAM.z)}
+async function camApplyHw(val){if(!CAM.track)return;if(CAM.zBusy){CAM.zNext=val;return}CAM.zBusy=true;try{await CAM.track.applyConstraints({advanced:[{zoom:val}]})}catch(e){}CAM.zBusy=false;if(CAM.zNext!=null&&CAM.zNext!==val){const n=CAM.zNext;CAM.zNext=null;camApplyHw(n)}else CAM.zNext=null}
 async function camSetZoom(z,final){
- z=Math.min(camMaxZ(),Math.max(camMinZ(),z));CAM.z=z;camZoomUI();
- const want=(CAM.uw&&z<1)?'uw':'main';
- if(want!==CAM.cur){if(!final&&CAM.switching)return;CAM.switching=true;try{await camOpenDev(want)}catch(e){toast('レンズを切り替えられませんでした')}CAM.switching=false;z=CAM.z}
- const lz=CAM.cur==='uw'?z/0.5:z;
+ z=Math.min(CAM.maxZ,Math.max(CAM.minZ,z));CAM.z=z;camZoomUI();
+ let lz;
+ if(CAM.mode==='virt'){lz=z/CAM.f;CAM.virtZ=lz}
+ else if(CAM.mode==='switch'){const want=z<1?'uw':'main';
+  if(want!==CAM.cur){if(!final&&CAM.switching)return;CAM.switching=true;try{await camOpenDev(want)}catch(e){toast('レンズを切り替えられませんでした')}CAM.switching=false;z=CAM.z}
+  lz=CAM.cur==='uw'?z/0.5:z}
+ else lz=z/CAM.f;
  let hz=1;if(CAM.hw){hz=Math.min(CAM.hw.max,Math.max(CAM.hw.min,lz));camApplyHw(hz)}
  CAM.dz=Math.max(1,lz/hz);camV.style.transform=CAM.dz>1.001?`scale(${CAM.dz})`:'';
 }
@@ -462,8 +473,10 @@ async function camOpen(){
  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){camMsg('このブラウザではアプリ内カメラが使えません。',['標準カメラで撮る',camUseStd]);return}
  if(CAM.stream&&CAM.track&&CAM.track.readyState==='live'){CAM.track.enabled=true;try{await camV.play()}catch(e){}camMsg(null);camFit();camZoomUI();return}
  if(CAM.opening)return;CAM.opening=true;camMsg('カメラを起動中…');
- try{CAM.z=1;CAM.dz=1;camV.style.transform='';await camOpenDev('main');await camDetect();camMsg(null);camSetZoom(1,true)}
- catch(e){camStop();const denied=e&&(e.name==='NotAllowedError'||e.name==='SecurityError');
+ try{CAM.z=1;CAM.dz=1;CAM.virtZ=null;camV.style.transform='';
+  if(CAM.detected&&CAM.mode){await camOpenDev(CAM.mode==='virt'?'virt':'main')}else{await camGUM(null);await camDetect()}
+  camMsg(null);await camSetZoom(1,true)}
+ catch(e){camStop();CAM.detected=false;const denied=e&&(e.name==='NotAllowedError'||e.name==='SecurityError');
   camMsg(denied?'カメラの使用が許可されていません。iPad の「設定 › アプリ › Safari › カメラ」で「許可」にするか、標準カメラを使ってください。':'カメラを起動できませんでした。',['標準カメラで撮る',camUseStd])}
  CAM.opening=false;
 }
@@ -471,6 +484,9 @@ function camUseStd(){camStop();show('s-proj');renderProject();$('#camInput').val
 $('#camStd').onclick=camUseStd;
 $('#camClose').onclick=()=>{camStop();show('s-proj');renderProject()};
 $('#camLib').onclick=()=>{camStop();$('#libInput').value='';$('#libInput').click()};
+$('#camInfo').onclick=()=>{const m=$('#camMsg');if(!m.hidden){camMsg(null);return}
+ const mode={virt:'複数レンズ連動（超広角〜ズーム）',switch:'超広角／広角を切替',single:'レンズ1本'}[CAM.mode]||'不明';
+ camMsg('カメラ情報\n方式: '+mode+'\n倍率の範囲: '+fmtZ(CAM.minZ)+' 〜 '+fmtZ(CAM.maxZ)+'\nハードウェアズーム: '+(CAM.hw?(CAM.hw.min+'〜'+CAM.hw.max):'なし（デジタル）')+'\n\n検出したカメラ:\n'+CAM.labels.join('\n'),['閉じる',()=>camMsg(null)])};
 $('#camShut').onclick=async()=>{
  const vw=camV.videoWidth,vh=camV.videoHeight;if(!CAM.stream||!vw)return;$('#camShut').disabled=true;
  const sw=Math.round(vw/CAM.dz),sh=Math.round(vh/CAM.dz);const c=document.createElement('canvas');c.width=sw;c.height=sh;
@@ -479,13 +495,14 @@ $('#camShut').onclick=async()=>{
  const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.93));
  CAM.track.enabled=false;CAM.idleT=setTimeout(camStop,90000);
  $('#camShut').disabled=false;if(blob)startEdit(blob,null);else toast('撮影に失敗しました')};
-/* ピンチでズーム */
+/* ピンチで自由にズーム（指を広げる=拡大、つまむ=広角側） */
 const pts=new Map();let pinch0=null;
 function pdist(){const a=[...pts.values()];return Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)}
-camPv.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===2)pinch0={d:pdist(),z:CAM.z}});
+camPv.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===2)pinch0={d:Math.max(1,pdist()),z:CAM.z}});
 camPv.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===2&&pinch0){camSetZoom(pinch0.z*pdist()/pinch0.d,false)}});
 const pend=e=>{if(!pts.has(e.pointerId))return;pts.delete(e.pointerId);if(pts.size<2&&pinch0){pinch0=null;camSetZoom(CAM.z,true)}};
 camPv.addEventListener('pointerup',pend);camPv.addEventListener('pointercancel',pend);
+['gesturestart','gesturechange'].forEach(t=>camPv.addEventListener(t,e=>e.preventDefault()));
 document.addEventListener('visibilitychange',()=>{if(document.hidden)camStop();else if(!$('#s-cam').hidden)camOpen()});
 
 /* ---------- 起動 ---------- */

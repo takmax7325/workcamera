@@ -123,6 +123,27 @@ input,textarea{font:inherit;color:inherit}
 .bb .tg{background:var(--fill);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600}
 .bb .tg.on{background:var(--accent);color:#fff}
 .hint{font-size:12px;color:var(--ink2);text-align:center;padding:8px 16px 0}
+/* camera */
+.cam{background:#000;color:#fff;flex-direction:row}
+.cam .pv{flex:1;position:relative;overflow:hidden;display:grid;place-items:center;touch-action:none;min-width:0}
+.cam .fr{position:relative;overflow:hidden;background:#111}
+.cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;transform-origin:50% 50%}
+.cam .zl{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 16px);transform:translateX(-50%);background:rgba(0,0,0,.55);padding:4px 14px;border-radius:999px;font-weight:700;font-size:15px;color:#FFD60A;pointer-events:none;transition:opacity .3s}
+.cam .tl{position:absolute;top:calc(env(safe-area-inset-top) + 12px);left:12px;display:flex;gap:10px;z-index:2}
+.cam .cb{background:rgba(0,0,0,.5);color:#fff;border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600}
+.cam .side{width:112px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:calc(env(safe-area-inset-top) + 12px) calc(env(safe-area-inset-right) + 8px) calc(env(safe-area-inset-bottom) + 12px) 8px}
+.cam .zs{display:flex;flex-direction:column;gap:6px;background:rgba(255,255,255,.12);border-radius:999px;padding:5px}
+.cam .zs button{width:46px;height:46px;border-radius:50%;font-size:13px;font-weight:700;background:rgba(0,0,0,.45);color:#fff}
+.cam .zs button.on{color:#FFD60A;font-size:14px}
+.cam .shut{width:80px;height:80px;border-radius:50%;border:4px solid #fff;display:grid;place-items:center}
+.cam .shut i{width:64px;height:64px;border-radius:50%;background:#fff;transition:transform .1s}
+.cam .shut:active i{transform:scale(.88)}
+.cam .shut:disabled{opacity:.4}
+.cam .lib{width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,.14);display:grid;place-items:center}
+.cam .lib svg{width:24px;height:24px}
+.cam .flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .3s}
+.cam .msg{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:14px;text-align:center;padding:24px;color:#ddd;font-size:15px}
+.cam .msg button{background:#fff;color:#000;border-radius:999px;padding:10px 20px;font-weight:700}
 </style>
 
 <!-- 案件一覧 -->
@@ -202,6 +223,21 @@ input,textarea{font:inherit;color:inherit}
   </div>
 </div>
 
+<!-- カメラ -->
+<div class="screen cam" id="s-cam" hidden>
+  <div class="pv" id="camPv">
+    <div class="fr" id="camFr"><video id="camV" playsinline muted autoplay></video><div class="flash" id="camFlash"></div></div>
+    <div class="tl"><button class="cb" id="camClose" aria-label="閉じる">✕ 閉じる</button><button class="cb" id="camStd">標準カメラ</button></div>
+    <div class="zl" id="camZl">1×</div>
+    <div class="msg" id="camMsg" hidden></div>
+  </div>
+  <div class="side">
+    <div class="zs" id="camZs"></div>
+    <button class="shut" id="camShut" aria-label="撮影"><i></i></button>
+    <button class="lib" id="camLib" aria-label="写真から選ぶ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg></button>
+  </div>
+</div>
+
 <div class="sheet" id="sheet" hidden></div>
 <div class="toast" id="toast" hidden></div>
 
@@ -251,7 +287,7 @@ function renderAll(c,img,W,H,shapes,strokes,sel,draft,cur){c.clearRect(0,0,W,H);
  const ink=document.createElement('canvas');ink.width=W;ink.height=H;const ic=ink.getContext('2d');strokes.forEach(s=>drawStroke(ic,s,W,H));if(cur)drawStroke(ic,cur,W,H);c.drawImage(ink,0,0)}
 
 /* ---------- 画面遷移 ---------- */
-const screens=['s-list','s-proj','s-edit','s-photo'];
+const screens=['s-list','s-proj','s-edit','s-photo','s-cam'];
 function show(id){screens.forEach(s=>$('#'+s).hidden=s!==id)}
 let currentProject=null;
 
@@ -291,7 +327,7 @@ async function renderProject(){const p=currentProject;$('#pTitle').textContent=p
 function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 $('#backList').onclick=()=>{show('s-list');renderProjects()};
 $('#editProject').onclick=()=>projectForm(currentProject);
-$('#shoot').onclick=()=>{$('#camInput').value='';$('#camInput').click()};
+$('#shoot').onclick=()=>camOpen();
 $('#shoot').addEventListener('contextmenu',e=>{e.preventDefault();$('#libInput').value='';$('#libInput').click()});
 $('#camInput').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)startEdit(f,null)};
 $('#libInput').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)startEdit(f,null)};
@@ -353,9 +389,9 @@ async function exportBlob(){const c=document.createElement('canvas');c.width=ED.
 async function saveEdit(){toast('保存中…');const ann=await exportBlob();const memo=$('#edMemo').value.trim();
  if(ED.photo){const ph={...ED.photo,ann,memo,shapes:ED.shapes,strokes:ED.strokes,updatedAt:Date.now()};await DB.put('photos',ph);return ph}
  const ph={id:uid(),projectId:currentProject.id,createdAt:Date.now(),updatedAt:Date.now(),memo,orig:ED.origBlob,ann,w:ED.W,h:ED.H,shapes:ED.shapes,strokes:ED.strokes};await DB.put('photos',ph);return ph}
-$('#edDone').onclick=async()=>{const ph=await saveEdit();toast('保存しました');if(ED.photo){openPhoto(ph.id)}else{show('s-proj');renderProject()}};
-$('#edNext').onclick=async()=>{await saveEdit();toast('保存しました');show('s-proj');renderProject();$('#camInput').value='';$('#camInput').click()};
-$('#edClose').onclick=async()=>{if(ED.strokes.length||ED.shapes.length){if(!await confirmBox('編集を破棄しますか？','破棄'))return}if(ED.photo)openPhoto(ED.photo.id);else{show('s-proj');renderProject()}};
+$('#edDone').onclick=async()=>{camStop();const ph=await saveEdit();toast('保存しました');if(ED.photo){openPhoto(ph.id)}else{show('s-proj');renderProject()}};
+$('#edNext').onclick=async()=>{await saveEdit();toast('保存しました');camOpen()};
+$('#edClose').onclick=async()=>{if(ED.strokes.length||ED.shapes.length){if(!await confirmBox('編集を破棄しますか？','破棄'))return}camStop();if(ED.photo)openPhoto(ED.photo.id);else{show('s-proj');renderProject()}};
 
 /* ---------- 写真詳細 ---------- */
 let curPhoto=null,showOrig=false;
@@ -371,6 +407,86 @@ $('#phShare').onclick=async()=>{const ph=curPhoto;const blob=showOrig?ph.orig:ph
  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});return}}catch(e){if(e&&e.name==='AbortError')return}
  try{const dl=window.claude&&await window.claude.use('downloads');if(dl){await dl.save({filename:name,data:blob});toast('保存しました');return}}catch(e){if(e&&e.code==='declined')return}
  const a=document.createElement('a');a.href=thumbURL(blob);a.download=name;a.click()};
+
+
+/* ---------- アプリ内カメラ（超広角〜ズーム） ---------- */
+const CAM={stream:null,track:null,main:null,uw:null,cur:null,z:1,hw:null,dz:1,zBusy:false,zNext:null,idleT:null,opening:false,detected:false};
+const camV=$('#camV'),camPv=$('#camPv'),camFr=$('#camFr');
+const MAXZ=10;
+function camMinZ(){return CAM.uw?0.5:1}
+function camMaxZ(){return MAXZ}
+function fmtZ(z){return (z<1?z.toFixed(1).replace(/^0/,'0'):(Math.abs(z-Math.round(z))<.05?String(Math.round(z)):z.toFixed(1)))+'×'}
+function camMsg(t,btn){const m=$('#camMsg');if(!t){m.hidden=true;return}m.hidden=false;m.innerHTML='';const d=document.createElement('div');d.textContent=t;m.appendChild(d);if(btn){const b=document.createElement('button');b.textContent=btn[0];b.onclick=btn[1];m.appendChild(b)}}
+function camStop(){clearTimeout(CAM.idleT);if(CAM.stream)CAM.stream.getTracks().forEach(t=>t.stop());CAM.stream=null;CAM.track=null;CAM.cur=null;camV.srcObject=null}
+function camFit(){const vw=camV.videoWidth,vh=camV.videoHeight;if(!vw||!vh)return;const r=camPv.getBoundingClientRect();const ar=vw/vh;let w=r.width,h=w/ar;if(h>r.height){h=r.height;w=h*ar}camFr.style.width=Math.floor(w)+'px';camFr.style.height=Math.floor(h)+'px'}
+camV.addEventListener('loadedmetadata',camFit);camV.addEventListener('resize',camFit);window.addEventListener('resize',()=>{if(!$('#s-cam').hidden)camFit()});
+async function camOpenDev(which){
+ const id=which==='uw'?CAM.uw:CAM.main;
+ const v={width:{ideal:4032},height:{ideal:3024}};
+ if(id)v.deviceId={exact:id};else v.facingMode={ideal:'environment'};
+ if(CAM.stream)CAM.stream.getTracks().forEach(t=>t.stop());
+ const st=await navigator.mediaDevices.getUserMedia({video:v,audio:false});
+ CAM.stream=st;CAM.track=st.getVideoTracks()[0];CAM.cur=which;
+ let caps={};try{caps=CAM.track.getCapabilities?CAM.track.getCapabilities():{}}catch(e){}
+ CAM.hw=(caps.zoom&&caps.zoom.max>caps.zoom.min)?caps.zoom:null;
+ camV.srcObject=st;try{await camV.play()}catch(e){}
+}
+async function camDetect(){
+ if(CAM.detected)return;CAM.detected=true;
+ try{const set=CAM.track.getSettings?CAM.track.getSettings():{};CAM.main=set.deviceId||null;
+  const ds=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');
+  const back=ds.filter(d=>!/front|前面|user/i.test(d.label));
+  const uw=back.find(d=>/ultra ?wide|超広角/i.test(d.label)&&!/dual|triple|デュアル|トリプル/i.test(d.label));
+  if(uw&&uw.deviceId!==CAM.main)CAM.uw=uw.deviceId;
+  const mainCam=back.find(d=>/^(back camera|背面カメラ)$/i.test(d.label.trim()));
+  if(mainCam&&CAM.main!==mainCam.deviceId){CAM.main=mainCam.deviceId;await camOpenDev('main')}
+ }catch(e){}
+ camPresets();
+}
+function camPresets(){const box=$('#camZs');box.innerHTML='';const ps=(CAM.uw?[0.5]:[]).concat([1,2,5].filter(z=>z<=camMaxZ()));
+ ps.forEach(z=>{const b=document.createElement('button');b.dataset.z=z;b.textContent=fmtZ(z);b.onclick=()=>camSetZoom(z,true);box.appendChild(b)});camZoomUI()}
+function camZoomUI(){const z=CAM.z;const bs=[...document.querySelectorAll('#camZs button')];let act=null;bs.forEach(b=>{if(+b.dataset.z<=z+1e-6)act=b});
+ bs.forEach(b=>{const on=b===act;b.classList.toggle('on',on);b.textContent=on?fmtZ(z).replace('×',''):fmtZ(+b.dataset.z).replace('×','')});
+ const zl=$('#camZl');zl.textContent=fmtZ(z);zl.style.opacity=1;clearTimeout(camZoomUI.t);camZoomUI.t=setTimeout(()=>zl.style.opacity=0,1400)}
+async function camApplyHw(val){if(CAM.zBusy){CAM.zNext=val;return}CAM.zBusy=true;try{await CAM.track.applyConstraints({advanced:[{zoom:val}]})}catch(e){}CAM.zBusy=false;if(CAM.zNext!=null&&CAM.zNext!==val){const n=CAM.zNext;CAM.zNext=null;camApplyHw(n)}else CAM.zNext=null}
+async function camSetZoom(z,final){
+ z=Math.min(camMaxZ(),Math.max(camMinZ(),z));CAM.z=z;camZoomUI();
+ const want=(CAM.uw&&z<1)?'uw':'main';
+ if(want!==CAM.cur){if(!final&&CAM.switching)return;CAM.switching=true;try{await camOpenDev(want)}catch(e){toast('レンズを切り替えられませんでした')}CAM.switching=false;z=CAM.z}
+ const lz=CAM.cur==='uw'?z/0.5:z;
+ let hz=1;if(CAM.hw){hz=Math.min(CAM.hw.max,Math.max(CAM.hw.min,lz));camApplyHw(hz)}
+ CAM.dz=Math.max(1,lz/hz);camV.style.transform=CAM.dz>1.001?`scale(${CAM.dz})`:'';
+}
+async function camOpen(){
+ show('s-cam');clearTimeout(CAM.idleT);$('#camShut').disabled=false;
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){camMsg('このブラウザではアプリ内カメラが使えません。',['標準カメラで撮る',camUseStd]);return}
+ if(CAM.stream&&CAM.track&&CAM.track.readyState==='live'){CAM.track.enabled=true;try{await camV.play()}catch(e){}camMsg(null);camFit();camZoomUI();return}
+ if(CAM.opening)return;CAM.opening=true;camMsg('カメラを起動中…');
+ try{CAM.z=1;CAM.dz=1;camV.style.transform='';await camOpenDev('main');await camDetect();camMsg(null);camSetZoom(1,true)}
+ catch(e){camStop();const denied=e&&(e.name==='NotAllowedError'||e.name==='SecurityError');
+  camMsg(denied?'カメラの使用が許可されていません。iPad の「設定 › アプリ › Safari › カメラ」で「許可」にするか、標準カメラを使ってください。':'カメラを起動できませんでした。',['標準カメラで撮る',camUseStd])}
+ CAM.opening=false;
+}
+function camUseStd(){camStop();show('s-proj');renderProject();$('#camInput').value='';$('#camInput').click()}
+$('#camStd').onclick=camUseStd;
+$('#camClose').onclick=()=>{camStop();show('s-proj');renderProject()};
+$('#camLib').onclick=()=>{camStop();$('#libInput').value='';$('#libInput').click()};
+$('#camShut').onclick=async()=>{
+ const vw=camV.videoWidth,vh=camV.videoHeight;if(!CAM.stream||!vw)return;$('#camShut').disabled=true;
+ const sw=Math.round(vw/CAM.dz),sh=Math.round(vh/CAM.dz);const c=document.createElement('canvas');c.width=sw;c.height=sh;
+ c.getContext('2d').drawImage(camV,(vw-sw)/2,(vh-sh)/2,sw,sh,0,0,sw,sh);
+ const f=$('#camFlash');f.style.transition='none';f.style.opacity=.9;requestAnimationFrame(()=>{f.style.transition='';f.style.opacity=0});
+ const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.93));
+ CAM.track.enabled=false;CAM.idleT=setTimeout(camStop,90000);
+ $('#camShut').disabled=false;if(blob)startEdit(blob,null);else toast('撮影に失敗しました')};
+/* ピンチでズーム */
+const pts=new Map();let pinch0=null;
+function pdist(){const a=[...pts.values()];return Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)}
+camPv.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===2)pinch0={d:pdist(),z:CAM.z}});
+camPv.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pts.size===2&&pinch0){camSetZoom(pinch0.z*pdist()/pinch0.d,false)}});
+const pend=e=>{if(!pts.has(e.pointerId))return;pts.delete(e.pointerId);if(pts.size<2&&pinch0){pinch0=null;camSetZoom(CAM.z,true)}};
+camPv.addEventListener('pointerup',pend);camPv.addEventListener('pointercancel',pend);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)camStop();else if(!$('#s-cam').hidden)camOpen()});
 
 /* ---------- 起動 ---------- */
 show('s-list');renderProjects();

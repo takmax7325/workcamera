@@ -262,7 +262,7 @@ const DB=(()=>{let db;
 
 /* ---------- 画像ユーティリティ ---------- */
 function loadImage(blob){return new Promise((res,rej)=>{const u=URL.createObjectURL(blob);const im=new Image();im.onload=()=>{URL.revokeObjectURL(u);res(im)};im.onerror=rej;im.src=u})}
-async function normalize(blob,max=2600){const im=await loadImage(blob);const s=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));const w=Math.round(im.naturalWidth*s),h=Math.round(im.naturalHeight*s);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);return{blob:await new Promise(r=>c.toBlob(r,'image/jpeg',.92)),w,h}}
+async function normalize(blob,max=4096){const im=await loadImage(blob);const s=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));if(s===1&&/jpe?g/i.test(blob.type||''))return{blob,w:im.naturalWidth,h:im.naturalHeight};const w=Math.round(im.naturalWidth*s),h=Math.round(im.naturalHeight*s);const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);return{blob:await new Promise(r=>c.toBlob(r,'image/jpeg',.95)),w,h}}
 function thumbURL(blob){return URL.createObjectURL(blob)}
 
 /* ---------- 図形描画（表示・書き出し共通） ---------- */
@@ -384,7 +384,7 @@ function ask(s,existing){pending=s;pendingExisting=existing;$('#askT').textConte
 function closeAsk(ok){if(!pending)return;const v=$('#askI').value.trim();if(ok){pending.t=v||(pending.k==='dim'?'?':'');if(!pendingExisting&&!(pending.k==='text'&&!v))ED.shapes.push(pending)}pending=null;ED.draft=null;$('#ask').hidden=true;render()}
 $('#askO').onclick=()=>closeAsk(true);$('#askC').onclick=()=>closeAsk(false);$('#askI').addEventListener('keydown',e=>{if(e.key==='Enter')closeAsk(true);if(e.key==='Escape')closeAsk(false)});
 // save
-async function exportBlob(){const c=document.createElement('canvas');c.width=ED.W;c.height=ED.H;renderAll(c.getContext('2d'),ED.img,ED.W,ED.H,ED.shapes,ED.strokes,null,null,null);return new Promise(r=>c.toBlob(r,'image/jpeg',.9))}
+async function exportBlob(){const c=document.createElement('canvas');c.width=ED.W;c.height=ED.H;renderAll(c.getContext('2d'),ED.img,ED.W,ED.H,ED.shapes,ED.strokes,null,null,null);return new Promise(r=>c.toBlob(r,'image/jpeg',.95))}
 async function saveEdit(){toast('保存中…');const ann=await exportBlob();const memo=$('#edMemo').value.trim();
  if(ED.photo){const ph={...ED.photo,ann,memo,shapes:ED.shapes,strokes:ED.strokes,updatedAt:Date.now()};await DB.put('photos',ph);return ph}
  const ph={id:uid(),projectId:currentProject.id,createdAt:Date.now(),updatedAt:Date.now(),memo,orig:ED.origBlob,ann,w:ED.W,h:ED.H,shapes:ED.shapes,strokes:ED.strokes};await DB.put('photos',ph);return ph}
@@ -486,14 +486,25 @@ $('#camClose').onclick=()=>{camStop();show('s-proj');renderProject()};
 $('#camLib').onclick=()=>{camStop();$('#libInput').value='';$('#libInput').click()};
 $('#camInfo').onclick=()=>{const m=$('#camMsg');if(!m.hidden){camMsg(null);return}
  const mode={virt:'複数レンズ連動（超広角〜ズーム）',switch:'超広角／広角を切替',single:'レンズ1本'}[CAM.mode]||'不明';
- camMsg('カメラ情報\n方式: '+mode+'\n倍率の範囲: '+fmtZ(CAM.minZ)+' 〜 '+fmtZ(CAM.maxZ)+'\nハードウェアズーム: '+(CAM.hw?(CAM.hw.min+'〜'+CAM.hw.max):'なし（デジタル）')+'\n\n検出したカメラ:\n'+CAM.labels.join('\n'),['閉じる',()=>camMsg(null)])};
+ camMsg('カメラ情報\n方式: '+mode+'\n倍率の範囲: '+fmtZ(CAM.minZ)+' 〜 '+fmtZ(CAM.maxZ)+'\nハードウェアズーム: '+(CAM.hw?(CAM.hw.min+'〜'+CAM.hw.max):'なし（デジタル）')+'\n映像: '+camV.videoWidth+'×'+camV.videoHeight+'\n撮影方式: '+(typeof ImageCapture==='function'?'写真モード対応':'映像から切り出し')+(CAM.last?'\n前回の写真: '+CAM.last+'（'+CAM.how+'）':'')+(CAM.photoErr?'\n写真モード失敗: '+CAM.photoErr:'')+'\n\n検出したカメラ:\n'+CAM.labels.join('\n'),['閉じる',()=>camMsg(null)])};
+/* 高画質撮影：写真モード(ImageCapture.takePhoto)が使えればセンサー最大解像度、無理なら映像の最大解像度フレーム */
+async function camCrop(src,W,H){const sw=Math.round(W/CAM.dz),sh=Math.round(H/CAM.dz);const c=document.createElement('canvas');c.width=sw;c.height=sh;
+ c.getContext('2d').drawImage(src,(W-sw)/2,(H-sh)/2,sw,sh,0,0,sw,sh);return{blob:await new Promise(r=>c.toBlob(r,'image/jpeg',.95)),w:sw,h:sh}}
+async function camGrab(){
+ if(typeof ImageCapture==='function'&&CAM.track){try{
+  const ic=new ImageCapture(CAM.track);const o={};
+  try{const pc=await ic.getPhotoCapabilities();if(pc&&pc.imageWidth&&pc.imageWidth.max){o.imageWidth=pc.imageWidth.max;if(pc.imageHeight&&pc.imageHeight.max)o.imageHeight=pc.imageHeight.max}}catch(e){}
+  const b=await ic.takePhoto(o);
+  if(b&&b.size>1000){const im=await loadImage(b);const W=im.naturalWidth,H=im.naturalHeight;CAM.how='写真モード';
+   if(CAM.dz>1.001){const r=await camCrop(im,W,H);CAM.last=r.w+'×'+r.h;return r.blob}
+   CAM.last=W+'×'+H;return b.type?b:new Blob([b],{type:'image/jpeg'})}
+ }catch(e){CAM.photoErr=(e&&e.name)||'error'}}
+ const vw=camV.videoWidth,vh=camV.videoHeight;const r=await camCrop(camV,vw,vh);CAM.how='映像から切り出し';CAM.last=r.w+'×'+r.h;return r.blob}
 $('#camShut').onclick=async()=>{
- const vw=camV.videoWidth,vh=camV.videoHeight;if(!CAM.stream||!vw)return;$('#camShut').disabled=true;
- const sw=Math.round(vw/CAM.dz),sh=Math.round(vh/CAM.dz);const c=document.createElement('canvas');c.width=sw;c.height=sh;
- c.getContext('2d').drawImage(camV,(vw-sw)/2,(vh-sh)/2,sw,sh,0,0,sw,sh);
+ if(!CAM.stream||!camV.videoWidth)return;$('#camShut').disabled=true;
  const f=$('#camFlash');f.style.transition='none';f.style.opacity=.9;requestAnimationFrame(()=>{f.style.transition='';f.style.opacity=0});
- const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.93));
- CAM.track.enabled=false;CAM.idleT=setTimeout(camStop,90000);
+ let blob=null;try{blob=await camGrab()}catch(e){}
+ if(CAM.track)CAM.track.enabled=false;CAM.idleT=setTimeout(camStop,90000);
  $('#camShut').disabled=false;if(blob)startEdit(blob,null);else toast('撮影に失敗しました')};
 /* ピンチで自由にズーム（指を広げる=拡大、つまむ=広角側） */
 const pts=new Map();let pinch0=null;
